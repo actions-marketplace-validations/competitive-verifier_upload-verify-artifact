@@ -1,0 +1,57 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Upload directory
+        id: directory
+        uses: ./
+        continue-on-error: true
+        with:
+          file: tests/
+
+      - name: Upload wildcard-multi
+        id: wildcard-multi
+        uses: ./
+        continue-on-error: true
+        with:
+          file: tests/*.json
+
+      - name: Upload not json
+        id: not-json
+        uses: ./
+        continue-on-error: true
+        with:
+          file: tests/not_json.txt
+
+      - name: Upload space
+        id: space
+        uses: ./
+        with:
+          file: tests/sp ace.json
+
+      - name: Upload wildcard single
+        id: wildcard-single
+        uses: ./
+        with:
+          file: tests/verify*.json
+
+      - name: Test outcome
+        run: |
+          test "${{steps.directory.outcome}}" = 'failure'
+          test "${{steps.wildcard-multi.outcome}}" = 'failure'
+          test "${{steps.not-json.outcome}}" = 'failure'
+          test "${{steps.space.outcome}}" = 'success'
+          test "${{steps.wildcard-single.outcome}}" = 'success'
